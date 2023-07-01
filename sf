@@ -1,0 +1,75 @@
+
+game:GetService("Players").LocalPlayer.PlayerGui.MainUI.NotifyMain.NotifyContent.TextColor3 = Color3.new(255, 255, 255)
+game:GetService("Players").LocalPlayer.PlayerGui.MainUI.NotifyMain.NotifyContent.Text = "Created by Cesare/iFergggg#0328"
+
+local TweenService = game:GetService("TweenService")
+local time = 2
+local tween = TweenService:Create(game:GetService("Players").LocalPlayer.PlayerGui.MainUI.NotifyMain, TweenInfo.new(time), {BackgroundTransparency = 0})
+local tween2 = TweenService:Create(game:GetService("Players").LocalPlayer.PlayerGui.MainUI.NotifyMain.NotifyContent, TweenInfo.new(time), {TextTransparency= 0})
+
+tween:Play()
+tween2:Play()
+
+task.wait(5)
+
+time2 = 3
+local tween = TweenService:Create(game:GetService("Players").LocalPlayer.PlayerGui.MainUI.NotifyMain, TweenInfo.new(time2), {BackgroundTransparency = 1})
+local tween2 = TweenService:Create(game:GetService("Players").LocalPlayer.PlayerGui.MainUI.NotifyMain.NotifyContent, TweenInfo.new(time2), {TextTransparency= 1})
+
+tween:Play()
+tween2:Play()
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Player = Players.LocalPlayer
+local Mouse = Player:GetMouse()
+local CurrentCamera = workspace.CurrentCamera
+
+if getgenv().bodypart == "Torso" then 
+    getgenv().bodypart = "HumanoidRootPart"
+end
+
+local function GetClosest(Fov)
+   local rightone, Closest = nil, Fov or math.huge
+
+   for i,v in pairs(Players:GetPlayers()) do
+       if (v.Character and v ~= Player and v.Character:FindFirstChild(getgenv().bodypart)) then
+           local Position, OnScreen = CurrentCamera:WorldToScreenPoint(v.Character[getgenv().bodypart].Position)
+           local Distance = (Vector2.new(Position.X, Position.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+
+           if (Distance < Closest and OnScreen) then
+               Closest = Distance
+               rightone = v
+           end
+       end
+   end
+   
+   return rightone
+end
+
+local rightone
+local FIRST = Drawing.new("Circle")
+local SECOND = Drawing.new("Circle")
+RunService.Stepped:Connect(function()
+   SECOND.Radius = getgenv().fov
+   SECOND.Thickness = 2
+   SECOND.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+   SECOND.Transparency = 0.6
+   SECOND.Color = Color3.fromRGB(0, 255, 155)
+   SECOND.Visible = true
+
+   rightone = GetClosest(getgenv().fov)
+end)
+
+local mt = getrawmetatable(game)
+local prev = mt.__namecall
+setreadonly(mt, false)
+mt.__namecall = newcclosure(function(self, ...)
+   local args = {...}
+   if not checkcaller() and getnamecallmethod() == 'FireServer' and self.Name == 'RemoteEvent' and args[1] == 'BulletHit' then
+   if rightone ~= nil then
+   args[2] = rightone.Character[getgenv().bodypart].Position
+   args[5] = rightone.Character[getgenv().bodypart]
+   end
+   end
+   return prev(self,unpack(args))
+end)
